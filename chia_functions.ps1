@@ -86,7 +86,7 @@ function Wait-EnoughSpendable {
     } until ($spendableAmount -ge $Amount) 
 
     Write-Host ""
-    Write-Host "Wait-EnoughSpendable: Spendable: $spendable_amount"
+    Write-Host "Wait-EnoughSpendable: Spendable: $spendableAmount"
     $sw.Stop()
     Write-Host "Wait-EnoughSpendable: $($sw.Elapsed.TotalMinutes) minutes"
 }
@@ -158,13 +158,3 @@ function Wait-Transaction {
     Write-Host ""
     Write-Host "Wait-Transaction: $($sw.Elapsed.TotalMinutes) minutes"
 }
-
-
-# $x = [PSCustomObject]@{
-#     name = "test"
-#     arr = 1,2,3 
-# } | ConvertTo-Json
-# $y = @{ 
-#     name = "test"
-#     arr = 1,2,3
-# } | ConvertTo-Json
