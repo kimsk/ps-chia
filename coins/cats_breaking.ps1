@@ -1,5 +1,4 @@
 param (
-    # fingerprint of your wallet
     [Parameter(mandatory)]
     $Fingerprint,
     [Parameter(mandatory)]

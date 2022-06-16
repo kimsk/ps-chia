@@ -10,23 +10,37 @@
 
 - [Break XCH coins](coins/xch_breaking.ps1)
 ```sh
+ps-chia/coins
 ❯ ./xch_breaking.ps1 -Fingerprint 4108344430 -Num 200 -Amount 500000000                     
-Wait-SyncedWallet: 4108344430 
-.
-Wait-SyncedWallet: 0.11276579 minutes
-Wait-EnoughSpendable: 1 110000000000 
-.
-Wait-EnoughSpendable: Spendable: 
-Wait-EnoughSpendable: 0.09319251 minutes
-Get-DerivedPuzzleHashes: 4108344430 200 
-........................................................................................................................................................................................................
-Get-DerivedPuzzleHashes: 1.68732569833333 minutes
-Get-Coins: 1 110000000000
-XCH Breaking: 1 coin(s) -> 200 coins
-Wait-Transaction: 0xcf1bf6bdaa9659e6a06ae5aefca4c71cd12b338fb1d0de4e282a282d8df8bb87 
-...........
-Wait-Transaction: 1.04156176 minutes
-XCH Breaking: 3.008692485 minutes
+```
+
+- [Break CAT coins](coins/cats_breaking.ps1)
+```sh
+ps-chia/coins
+./cats_breaking.ps1 -Fingerprint 2111922937 -WalletId 3 -Num 5 -ToAddress txch15ghtr05dduculwrlxr969623wwfqfrmstqxp67307ge5ge3ed66smxya0f 
+```
+
+## Offers
+
+- [Create Multiple Offers](offers/create_multiple_offers.ps1)
+
+```sh
+ps-chia/offers
+❯ ./create_multiple_offers.ps1 -Fingerprint 3239424902 -OfferWalletId 3 -OfferAmount 1000 -RequestWalletId 1 -RequestAmount 1000000000000 -OfferFilePrefix "1TDBX_x_1XCH" -OfferFilePath "/mnt/e/offers/tdbx" -Num 5
+```
+
+- [Cancel All Offers](offers/cancel_offers.ps1)
+```sh
+ps-chia/offers
+❯ ./cancel_offers.ps1 -Fingerprint 3239424902
+```
+
+## Keys/Wallets
+
+- [Delete Key and Database](keys-wallets/delete_key.ps1)
+```sh
+ps-chia/keys-wallets
+❯ ./delete_key.ps1 4108344430
 ```
 
 ## References
