@@ -158,3 +158,48 @@ function Wait-Transaction {
     Write-Host ""
     Write-Host "Wait-Transaction: $($sw.Elapsed.TotalMinutes) minutes"
 }
+
+function Get-CAT-Sender-Info {
+    param(
+        [Parameter(Mandatory)]
+        $ParentCoinSpendSolution
+    )
+
+    $sender_puzzle_hash = brun '(f (r (f (r (r (r (r 1)))))))' $ParentCoinSpendSolution
+    $amount = brun '(f (r (r (f (r (r (r (r 1))))))))' $ParentCoinSpendSolution
+
+    return @{ puzzle_hash = $sender_puzzle_hash; amount = $amount}
+}
+
+function Wait-SyncedFullNode {
+    $PSStyle.Progress.View = 'Minimal'
+    Write-Host "Syncing..."
+
+    $is_synced = $false
+    do {
+        $response = chia rpc full_node get_blockchain_state | ConvertFrom-Json
+
+        $sync = $response.blockchain_state.sync
+
+        if ($sync.synced) {
+            $is_synced = $true
+        } else {
+            $height_status = "$($sync.sync_progress_height)/$($sync.sync_tip_height)"
+            if ($sync.sync_tip_height -le 0) {
+                continue
+            }
+
+            if ($sync.sync_progress_height -eq $sync.sync_tip_height) {
+                continue
+            }
+        
+            $percentage = ($sync.sync_progress_height/$sync.sync_tip_height) * 100
+            Write-Progress -Activity "Syncing in Progress" -Status $height_status -PercentComplete $percentage
+        }
+        Start-Sleep -s 5
+
+    }
+    until ($is_synced)
+
+    Write-Host "Synced!"
+}
