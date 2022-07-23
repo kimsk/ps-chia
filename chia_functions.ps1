@@ -31,6 +31,17 @@ function Wait-SyncedWallet {
     Write-Host "Wait-SyncedWallet: $($sw.Elapsed.TotalMinutes) minutes"
 }
 
+function Show-WalletBalance {
+    param(
+        [Parameter(mandatory)]
+        [Int64] $Fingerprint
+    )
+    Wait-SyncedWallet -Fingerprint $Fingerprint
+    chia wallet show -f $Fingerprint
+}
+
+
+
 # Derive Keys and Decode to Puzzle Hashes
 function Get-DerivedPuzzleHashes {
     param(
@@ -159,6 +170,7 @@ function Wait-Transaction {
     Write-Host "Wait-Transaction: $($sw.Elapsed.TotalMinutes) minutes"
 }
 
+# Get CAT Sender Info from Parent-CoinSpend's solution
 function Get-CAT-Sender-Info {
     param(
         [Parameter(Mandatory)]
@@ -171,17 +183,20 @@ function Get-CAT-Sender-Info {
     return @{ puzzle_hash = $sender_puzzle_hash; amount = $amount}
 }
 
+# Wait for Full Node to be Synced with Progress Bar
 function Wait-SyncedFullNode {
     $PSStyle.Progress.View = 'Minimal'
-    Write-Host "Syncing..."
+    Write-Host "Syncing Full Node..."
 
     $is_synced = $false
+    $synced_height = 0
     do {
         $response = chia rpc full_node get_blockchain_state | ConvertFrom-Json
 
         $sync = $response.blockchain_state.sync
 
         if ($sync.synced) {
+            $synced_height = $response.blockchain_state.peak.height
             $is_synced = $true
         } else {
             $height_status = "$($sync.sync_progress_height)/$($sync.sync_tip_height)"
@@ -195,11 +210,10 @@ function Wait-SyncedFullNode {
         
             $percentage = ($sync.sync_progress_height/$sync.sync_tip_height) * 100
             Write-Progress -Activity "Syncing in Progress" -Status $height_status -PercentComplete $percentage
+            Start-Sleep -s 5
         }
-        Start-Sleep -s 5
-
     }
     until ($is_synced)
 
-    Write-Host "Synced!"
+    Write-Host "Full Node Synced at $($synced_height)."
 }

@@ -8,6 +8,7 @@ $receiver_puzzle_hash = cdv decode $receiver_address
 $asset_id = 'af4a9c1a4bdc6fd9b38c406be37ef4ba642036679c220767929c0e0ee6466144'
 $receiver_tchm_puzzle_hash = cdv clsp cat_puzzle_hash --tail $asset_id $receiver_puzzle_hash 
 
+Wait-SyncedFullNode
 $coin_records = cdv rpc coinrecords --by puzzlehash $receiver_tchm_puzzle_hash | ConvertFrom-Json
 
 foreach ($cr in $coin_records){
@@ -21,7 +22,8 @@ foreach ($cr in $coin_records){
     $cat_sender_info = Get-CAT-Sender-Info -ParentCoinSpendSolution $solution
 
     $sender_address = cdv encode $cat_sender_info.puzzle_hash.Substring(2) --prefix txch
-    Write-Host "$($sender_address) sent $($cat_sender_info.amount)"
+    $tokens = [math]::floor($cat_sender_info.amount/1000)
+    Write-Host "$($sender_address) sent $($tokens) token(s)"
 }
 
 
