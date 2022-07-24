@@ -14,22 +14,49 @@ function Wait-SyncedWallet {
         [Parameter(mandatory)]
         [Int64] $Fingerprint
     )
-    Write-Host "Wait-SyncedWallet: $fingerprint "
+    Write-Host "Wait-SyncedWallet: $fingerprint " -NoNewline
     $sw = new-object system.diagnostics.stopwatch
     $sw.Start()
 
     chia wallet show -f $Fingerprint | Out-Null
+    [console]::CursorVisible = $false
+    $cursors = "\|/-"
+    $cursor_idx = 0
+    Write-Host "[" -NoNewline
+    $cursor_pos = $host.UI.RawUI.CursorPosition
+    Write-Host " ]" -NoNewline
 
     do {
-        Start-Sleep -s 5
         $sync_status = chia rpc wallet get_sync_status | ConvertFrom-Json
-        Write-Host "." -NoNewline
+        $host.UI.RawUI.CursorPosition = $cursor_pos
+        $cursor_idx++
+        if ($cursor_idx -ge $cursors.Length) {
+            $cursor_idx = 0
+        }
+
+        Write-Host $cursors[$cursor_idx] -NoNewline
+        Start-Sleep -Milliseconds 200
     } until ($sync_status.synced) 
 
     $sw.Stop()
-    Write-Host ""
+    $cursor_pos.X -= 1
+    $host.UI.RawUI.CursorPosition = $cursor_pos
+    Write-Host "   "
     Write-Host "Wait-SyncedWallet: $($sw.Elapsed.TotalMinutes) minutes"
+
+    [console]::CursorVisible = $true
 }
+
+function Show-WalletBalance {
+    param(
+        [Parameter(mandatory)]
+        [Int64] $Fingerprint
+    )
+    Wait-SyncedWallet -Fingerprint $Fingerprint
+    chia wallet show -f $Fingerprint
+}
+
+
 
 # Derive Keys and Decode to Puzzle Hashes
 function Get-DerivedPuzzleHashes {
@@ -68,27 +95,46 @@ function Wait-EnoughSpendable {
     if ($Fingerprint) {
         Wait-SyncedWallet -Fingerprint $Fingerprint
     }
-
-    Write-Host "Wait-EnoughSpendable: $WalletId $Amount "
-    $sw = new-object system.diagnostics.stopwatch
-    $sw.Start()
-
+    
     $walletIdJson = 
         [PSCustomObject]@{ wallet_id = $WalletId } 
         | ConvertTo-Json
         | Edit-ChiaRpcJson
 
+    Write-Host "Wait-EnoughSpendable: $WalletId $Amount " -NoNewline
+
+    [console]::CursorVisible = $false
+    $cursors = "\|/-"
+    $cursor_idx = 0
+    Write-Host "[" -NoNewline
+    $cursor_pos = $host.UI.RawUI.CursorPosition
+    Write-Host " ]" -NoNewline
+
+    $sw = new-object system.diagnostics.stopwatch
+    $sw.Start()
+
 
     do {
-        Start-Sleep -s 5
         $spendableAmount = (chia rpc wallet get_wallet_balance $walletIdJson | ConvertFrom-Json).wallet_balance.spendable_balance
-        Write-Host "." -NoNewline
+        $host.UI.RawUI.CursorPosition = $cursor_pos
+        $cursor_idx++
+        if ($cursor_idx -ge $cursors.Length) {
+            $cursor_idx = 0
+        }
+
+        Write-Host $cursors[$cursor_idx] -NoNewline
+        Start-Sleep -Milliseconds 200
     } until ($spendableAmount -ge $Amount) 
 
-    Write-Host ""
-    Write-Host "Wait-EnoughSpendable: Spendable: $spendableAmount"
     $sw.Stop()
+    
+    $cursor_pos.X -= 1
+    $host.UI.RawUI.CursorPosition = $cursor_pos
+    Write-Host "   "
+    Write-Host "Wait-EnoughSpendable: Spendable: $spendableAmount"
     Write-Host "Wait-EnoughSpendable: $($sw.Elapsed.TotalMinutes) minutes"
+
+    [console]::CursorVisible = $true
 }
 
 # Get coins to spend
@@ -138,7 +184,15 @@ function Wait-Transaction {
         Wait-SyncedWallet -Fingerprint $Fingerprint
     }
 
-    Write-Host "Wait-Transaction: $TxnId "
+    Write-Host "Wait-Transaction: $TxnId " -NoNewline
+    [console]::CursorVisible = $false
+    $cursors = "\|/-"
+    $cursor_idx = 0
+    Write-Host "[" -NoNewline
+    $cursor_pos = $host.UI.RawUI.CursorPosition
+    Write-Host " ]" -NoNewline
+
+
     $sw = new-object system.diagnostics.stopwatch
     $sw.Start()
     $json = [PSCustomObject]@{
@@ -148,13 +202,68 @@ function Wait-Transaction {
     | Edit-ChiaRpcJson
 
     do {
-        Start-Sleep -s 5
         $result = chia rpc wallet get_transaction $json | ConvertFrom-Json
         $confirmed = $result.transaction.confirmed
-        Write-Host "." -NoNewline
+        $host.UI.RawUI.CursorPosition = $cursor_pos
+        $cursor_idx++
+        if ($cursor_idx -ge $cursors.Length) {
+            $cursor_idx = 0
+        }
+
+        Write-Host $cursors[$cursor_idx] -NoNewline
     } until ($confirmed)
 
     $sw.Stop()
-    Write-Host ""
+    $cursor_pos.X -= 1
+    $host.UI.RawUI.CursorPosition = $cursor_pos
+    Write-Host "   "
     Write-Host "Wait-Transaction: $($sw.Elapsed.TotalMinutes) minutes"
+}
+
+# Get CAT Sender Info from Parent-CoinSpend's solution
+function Get-CAT-Sender-Info {
+    param(
+        [Parameter(Mandatory)]
+        $ParentCoinSpendSolution
+    )
+
+    $sender_puzzle_hash = brun '(f (r (f (r (r (r (r 1)))))))' $ParentCoinSpendSolution
+    $amount = brun '(f (r (r (f (r (r (r (r 1))))))))' $ParentCoinSpendSolution
+
+    return @{ puzzle_hash = $sender_puzzle_hash; amount = $amount}
+}
+
+# Wait for Full Node to be Synced with Progress Bar
+function Wait-SyncedFullNode {
+    $PSStyle.Progress.View = 'Classic'
+    Write-Host "Syncing Full Node..."
+
+    $is_synced = $false
+    $synced_height = 0
+    do {
+        $response = chia rpc full_node get_blockchain_state | ConvertFrom-Json
+
+        $sync = $response.blockchain_state.sync
+
+        if ($sync.synced) {
+            $synced_height = $response.blockchain_state.peak.height
+            $is_synced = $true
+        } else {
+            if ($sync.sync_tip_height -le 0) {
+                continue
+            }
+
+            if ($sync.sync_progress_height -eq $sync.sync_tip_height) {
+                continue
+            }
+
+            $percentage = [Math]::floor(($sync.sync_progress_height/$sync.sync_tip_height) * 100)
+            $height_status = "$($sync.sync_progress_height)/$($sync.sync_tip_height) ($($percentage)%)"        
+            Write-Progress -Activity "Syncing in Progress" -Status $height_status -PercentComplete $percentage
+            Start-Sleep -Milliseconds 50 
+        }
+    }
+    until ($is_synced)
+
+    Write-Host "Full Node Synced at $($synced_height)."
 }
