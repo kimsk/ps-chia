@@ -1,6 +1,6 @@
 . ../chia_functions.ps1
 
-$receiver = 230530675
+$receiver = 3135761354
 $receiver_address = (chia keys derive -f $receiver wallet-address -n 1) -replace 'Wallet address 0: ', ''
 $receiver_puzzle_hash = cdv decode $receiver_address
 
@@ -12,6 +12,10 @@ Wait-SyncedFullNode
 $coin_records = cdv rpc coinrecords --by puzzlehash $receiver_tchm_puzzle_hash | ConvertFrom-Json
 
 foreach ($cr in $coin_records){
+    if ($cr.spent_block_index -ne 0) {
+        continue
+    }
+
     $parent_coin_info = $cr.coin.parent_coin_info
     $parent_coin_record = cdv rpc coinrecords --by id $parent_coin_info | ConvertFrom-Json
     $spent_block_index = $parent_coin_record.spent_block_index
@@ -22,7 +26,7 @@ foreach ($cr in $coin_records){
     $cat_sender_info = Get-CAT-Sender-Info -ParentCoinSpendSolution $solution
 
     $sender_address = cdv encode $cat_sender_info.puzzle_hash.Substring(2) --prefix txch
-    $tokens = [math]::floor($cat_sender_info.amount/1000)
+    $tokens = [math]::floor($cr.coin.amount/1000)
     Write-Host "$($sender_address) sent $($tokens) token(s)"
 }
 
