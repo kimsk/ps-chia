@@ -8,6 +8,20 @@ function Edit-ChiaRpcJson {
     $Json -replace '"', '\""'
 }
 
+function Reset-Simulator {
+    $env:CHIA_ROOT = "~/.chia/simulator/main"
+    $env:CHIA_KEYS_ROOT = "~/.chia_keys_sim_main"
+    cdv sim stop -wd
+
+    Remove-Item -Path "$($env:CHIA_ROOT)/db" -Recurse -Force
+    Remove-Item -Path "$($env:CHIA_ROOT)/wallet" -Recurse -Force
+
+    chia keys label show
+
+    cdv sim start -w
+    #cdv sim autofarm on
+}
+
 # Verify that wallet with the $FINGERPRINT is synced
 function Wait-SyncedWallet {
     param(
