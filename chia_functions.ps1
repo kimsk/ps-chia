@@ -8,6 +8,19 @@ function Edit-ChiaRpcJson {
     $Json -replace '"', '\""'
 }
 
+function Set-FingerprintEnvironments {
+    $pattern = "(?:^\|\s{1})(?<fingerprint>\d+)(?:\s+\|\s{1})(?<label>\w*)"
+    $lines = chia keys label show | Select-Object -Skip 2
+
+    foreach ($line in $lines) {
+        $regex_matches = Select-String -Pattern $pattern -InputObject $line
+        $fingerprint = $regex_matches.Matches[0].Groups['fingerprint'].Value
+        $label = $regex_matches.Matches[0].Groups['label'].Value
+        New-Variable -Name "fp_$($label)" -Value $fingerprint -Force -Scope 1
+        Write-Host "$fingerprint`t => `t`$fp_$($label)"
+    }
+}
+
 function Reset-Simulator {
     $env:CHIA_ROOT = "~/.chia/simulator/main"
     $env:CHIA_KEYS_ROOT = "~/.chia_keys_sim_main"
