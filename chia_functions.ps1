@@ -8,6 +8,15 @@ function Edit-ChiaRpcJson {
     $Json -replace '"', '\""'
 }
 
+function ConvertTo-ChiaRpcJson {
+    [CmdletBinding()]
+    param (
+        [Parameter(ValueFromPipeline, mandatory)]
+        [PSCustomObject] $object
+    )
+    $object | ConvertTo-Json | Edit-ChiaRpcJson
+}
+
 function Set-FingerprintEnvironments {
     $pattern = "(?:^\|\s{1})(?<fingerprint>\d+)(?:\s+\|\s{1})(?<label>\w*)"
     $lines = chia keys label show | Select-Object -Skip 2
