@@ -30,6 +30,7 @@ elseif($testnet) {
 elseif($sim) {
     $env:CHIA_ROOT = "~/.chia/simulator/$($sim)"
     $env:CHIA_KEYS_ROOT = "~/.chia_keys_sim_$sim"
+    New-Variable -Name "sim" -Value $sim -Force -Scope 1
     chia configure -t true
 }
 
