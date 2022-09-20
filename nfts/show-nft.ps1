@@ -7,7 +7,7 @@ param (
 
 . ../chia_functions.ps1
 
-Wait-SyncedWallet -Fingerprint $Fingerprint
+#Wait-SyncedWallet -Fingerprint $Fingerprint
 $json = [PSCustomObject]@{
     coin_id = $CoinId
 } 
@@ -21,7 +21,12 @@ if (-not $nft.Success) {
     $nft = $nft.nft_info
 }
 $nft_id = cdv encode $nft.launcher_id --prefix nft
-$owner_did = cdv encode $nft.owner_did --prefix did:chia:
+if ($nft.owner_did) {
+    $owner_did = cdv encode $nft.owner_did --prefix did:chia:
+} else {
+    $owner_did = "N/A"
+}
+
 Write-Output "[1;32mnft_id    :[1;37m $nft_id[0m"
 Write-Output "[1;32mowner_did :[1;37m $owner_did[0m"
 $imgcat_result = Get-Command imgcat 2>&1
