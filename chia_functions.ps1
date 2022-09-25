@@ -1,4 +1,14 @@
 # PowerShell object to Json for chia rpc
+
+function Edit-DoubleToSingleQuote {
+    [CmdletBinding()]
+    param (
+        [Parameter(ValueFromPipeline, mandatory)]
+        [string] $Value
+    )
+    $Value -replace "`"", "'" 
+}
+
 function Edit-ChiaRpcJson {
     [CmdletBinding()]
     param (
