@@ -27,7 +27,18 @@ function ConvertTo-ChiaRpcJson {
     $object | ConvertTo-Json | Edit-ChiaRpcJson
 }
 
-function Set-FingerprintEnvironments {
+function Set-AddressPSVariables {
+    $keys = chia keys show --json | ConvertFrom-Json
+
+    foreach ($key in $keys) {
+        $label = $key.label
+        $address = $key.wallet_address
+        New-Variable -Name "addr_$($label)" -Value $address -Force -Scope 1
+        Write-Host "$address`t => `t`$addr_$($label)"
+    }
+}
+
+function Set-FingerprintPSVariables {
     $pattern = "(?:^\|\s{1})(?<fingerprint>\d+)(?:\s+\|\s{1})(?<label>\w*)"
     $lines = chia keys label show | Select-Object -Skip 2
 
@@ -38,6 +49,11 @@ function Set-FingerprintEnvironments {
         New-Variable -Name "fp_$($label)" -Value $fingerprint -Force -Scope 1
         Write-Host "$fingerprint`t => `t`$fp_$($label)"
     }
+}
+
+function Set-ChiaPSVariables {
+    Set-FingerprintPSVariables
+    Set-AddressPSVariables
 }
 
 function Reset-Simulator {
