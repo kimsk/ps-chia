@@ -52,8 +52,8 @@ function Set-FingerprintPSVariables {
 }
 
 function Set-ChiaPSVariables {
-    Set-FingerprintPSVariables
-    Set-AddressPSVariables
+    . Set-FingerprintPSVariables
+    . Set-AddressPSVariables
 }
 
 function Reset-Simulator {
