@@ -28,7 +28,8 @@ function ConvertTo-ChiaRpcJson {
 }
 
 function Set-AddressPSVariables {
-    $keys = chia keys show --json | ConvertFrom-Json
+    # https://github.com/Chia-Network/chia-blockchain/pull/13637
+    $keys = (chia keys show --json | ConvertFrom-Json).keys
 
     foreach ($key in $keys) {
         $label = $key.label
