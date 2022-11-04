@@ -39,22 +39,23 @@ function Set-AddressPSVariables {
     }
 }
 
-function Set-FingerprintPSVariables {
-    $pattern = "(?:^\|\s{1})(?<fingerprint>\d+)(?:\s+\|\s{1})(?<label>\w*)"
-    $lines = chia keys label show | Select-Object -Skip 2
-
-    foreach ($line in $lines) {
-        $regex_matches = Select-String -Pattern $pattern -InputObject $line
-        $fingerprint = $regex_matches.Matches[0].Groups['fingerprint'].Value
-        $label = $regex_matches.Matches[0].Groups['label'].Value
-        New-Variable -Name "fp_$($label)" -Value $fingerprint -Force -Scope 1
-        Write-Host "$fingerprint`t => `t`$fp_$($label)"
-    }
+function Set-KeyPSVariable {
+    $keys = (chia keys show --json | ConvertFrom-Json).keys
+    foreach ($key in $keys) {
+        $label = $key.label
+        if ($label) {
+            $fingerprint = $key.fingerprint
+            $address = $key.wallet_address
+            New-Variable -Name "$($label)_fp" -Value $fingerprint -Force -Scope 1
+            Write-Host "`$$($label)_fp:`t`t$fingerprint"
+            New-Variable -Name "$($label)_addr" -Value $address -Force -Scope 1
+            Write-Host "`$$($label)_addr:`t`t$address"
+        }
+    } 
 }
 
 function Set-ChiaPSVariables {
-    . Set-FingerprintPSVariables
-    . Set-AddressPSVariables
+    . Set-KeyPSVariable
 }
 
 function Reset-Simulator {
