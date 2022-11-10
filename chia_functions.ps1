@@ -331,3 +331,15 @@ function Wait-SyncedFullNode {
 
     Write-Host "Full Node Synced at $($synced_height)."
 }
+
+function ConvertTo-HexString{
+    param(
+        [Parameter(ValueFromPipeline, Mandatory)]
+        [string] $Text
+    ) 
+    (
+        $Text
+        | Format-Hex -Encoding utf8 
+        | select -Expand Bytes | % { '{0:x2}' -f $_ }
+    ) -join ''
+}

@@ -35,3 +35,4 @@ elseif($sim) {
 
 Write-Output $env:CHIA_ROOT
 Write-Output $env:CHIA_KEYS_ROOT
+Set-ChiaPSVariables
