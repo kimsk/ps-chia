@@ -11,6 +11,12 @@ $GetSingletonByParentIdPayload = {
     |ConvertTo-Json -Depth 2
 }
 
+$GetCoinId = {
+param($parent_coin_info, $puzzle_hash, $amount)
+    $coin_id = run "(sha256 $parent_coin_info $puzzle_hash $amount)"
+    return $coin_id
+}
+
 filter Get-OneOddCoinRecord
 {
     $odd_coin_record = $null
@@ -30,7 +36,7 @@ filter Get-OneOddCoinRecord
     return $odd_coin_record
 }
 
-$GetSingetonCoinRecordByParent = {
+$GetSingletonCoinRecordByParent = {
     param($parent_id)
 
     $payload = &$GetSingletonByParentIdPayload $parent_id
@@ -46,14 +52,13 @@ $unspent_not_found = $True
 $coin_records = New-Object System.Collections.ArrayList
 
 while ($unspent_not_found) {
-    $odd_coin_record = &$GetSingetonCoinRecordByParent $coin_id 
+    $odd_coin_record = &$GetSingletonCoinRecordByParent $coin_id 
     $coin_records.Add($odd_coin_record) | Out-Null
     $parent_coin_info = $odd_coin_record.coin.parent_coin_info
     $puzzle_hash = $odd_coin_record.coin.puzzle_hash
     $amount = $odd_coin_record.coin.amount
 
-    $coin_id = run "(sha256 $parent_coin_info $puzzle_hash $amount)"
- 
+    $coin_id = &$GetCoinId $parent_coin_info $puzzle_hash $amount
     $unspent_not_found = $odd_coin_record.spent_block_index -ne 0
 }
 
