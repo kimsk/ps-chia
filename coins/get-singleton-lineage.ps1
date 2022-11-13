@@ -12,7 +12,7 @@ $GetSingletonByParentIdPayload = {
 }
 
 $GetCoinId = {
-param($parent_coin_info, $puzzle_hash, $amount)
+    param($parent_coin_info, $puzzle_hash, $amount)
     $coin_id = run "(sha256 $parent_coin_info $puzzle_hash $amount)"
     return $coin_id
 }
