@@ -344,10 +344,16 @@ function ConvertTo-HexString{
     ) -join ''
 }
 
+# chia keys derive -f $alice_fp wallet-address -n 20
+# | % { $_ | Get-ObservedDerivedWalletAddress }
 function Get-ObservedDerivedWalletAddress{
     param(
         [Parameter(ValueFromPipeline, Mandatory)]
         [string] $Text
     )
-    $Text -replace "Wallet address (?<idx>\d){1,}: ", ""
+    $pattern = "^Wallet address (?<idx>\d{1,}): (?<address>\w*)$"
+    $regex_matches = Select-String -Pattern $pattern -InputObject $Text
+    $idx = $regex_matches.Matches[0].Groups['idx'].Value
+    $address = $regex_matches.Matches[0].Groups['address'].Value
+    return [pscustomobject]@{ index = $idx; address = $address }
 }
