@@ -343,3 +343,11 @@ function ConvertTo-HexString{
         | select -Expand Bytes | % { '{0:x2}' -f $_ }
     ) -join ''
 }
+
+function Get-ObservedDerivedWalletAddress{
+    param(
+        [Parameter(ValueFromPipeline, Mandatory)]
+        [string] $Text
+    )
+    $Text -replace "Wallet address (?<idx>\d){1,}: ", ""
+}
