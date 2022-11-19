@@ -357,3 +357,17 @@ function Get-ObservedDerivedWalletAddress{
     $address = $regex_matches.Matches[0].Groups['address'].Value
     return [pscustomobject]@{ index = $idx; address = $address }
 }
+
+# chia keys derive -f $alice_fp child-key -t wallet -n 20
+# | % { $_ | Get-ObservedDerivedPublicKey }
+function Get-ObservedDerivedWalletPublicKey{
+    param(
+        [Parameter(ValueFromPipeline, Mandatory)]
+        [string] $Text
+    )
+    $pattern = "^Wallet public key (?<idx>\d{1,}): (?<pk>\w*)$"
+    $regex_matches = Select-String -Pattern $pattern -InputObject $Text
+    $idx = $regex_matches.Matches[0].Groups['idx'].Value
+    $address = $regex_matches.Matches[0].Groups['pk'].Value
+    return [pscustomobject]@{ index = $idx; public_key = $address }
+}
