@@ -128,9 +128,10 @@ function Get-DerivedPuzzleHashes {
         [Parameter(mandatory)]
         [Int64] $Fingerprint,
 		[Parameter(mandatory)]
-        [Int] $Num
+        [Int] $Num,
+        [string] $AssetId
     )
-    Write-Host "Get-DerivedPuzzleHashes: $fingerprint $num "
+    Write-Host "Get-DerivedPuzzleHashes: $fingerprint $num $AssetId"
     $sw = new-object system.diagnostics.stopwatch
     $sw.Start()
 
@@ -139,10 +140,18 @@ function Get-DerivedPuzzleHashes {
         | ForEach-Object { $_ -replace '(^Wallet address )(.*)(: )', "" }
         | ForEach-Object { Write-Host "." -NoNewline; cdv decode $_ }
 
+    $result = $puzzleHashes
+
+    if ($AssetId) {
+        $catPuzzleHashes =
+            $puzzleHashes 
+            | ForEach-Object { cdv clsp cat_puzzle_hash -t $AssetId $_ }
+        $result = $catPuzzleHashes
+    }
+
     $sw.Stop()
     Write-Host ""
     Write-Host "Get-DerivedPuzzleHashes: $($sw.Elapsed.TotalMinutes) minutes"
-    $result = $puzzleHashes
     return $result
 }
 

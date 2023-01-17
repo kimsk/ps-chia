@@ -20,6 +20,11 @@ ps-chia/coins
 ./cats_breaking.ps1 -Fingerprint 2111922937 -WalletId 3 -Num 5 -ToAddress txch15ghtr05dduculwrlxr969623wwfqfrmstqxp67307ge5ge3ed66smxya0f 
 ```
 
+- [Get Singleton Lineage](coins/get-singleton-lineage.ps1)
+```sh
+❯ ./get-singleton-lineage.ps1 -Launcher_id 0x7dc07df2dd088ffdfcbe5a273825ac55565e536ed06604df55b3afa67e44b107
+```
+
 ## Offers
 
 - [Create Multiple Offers](offers/create_multiple_offers.ps1)
@@ -43,7 +48,11 @@ ps-chia/keys-wallets
 ❯ ./delete_key.ps1 4108344430
 ```
 
+- [Get Synthetic Secret Key From Synthetic Public Key](keys-wallets/get-syn-sk-from-syn-pk)
+
 ## References
 
 - [Chia RPC API](https://docs.chia.net/docs/12rpcs/rpcs)
 - [Chia RPC API Documentation | dkackman](https://dkackman.github.io/chia-api/static/)
+
+- [The Ultimate Guide to Terminal User Interfaces in PowerShell](https://blog.ironmansoftware.com/tui-powershell/)

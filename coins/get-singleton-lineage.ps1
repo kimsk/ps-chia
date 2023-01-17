@@ -63,3 +63,15 @@ while ($unspent_not_found) {
 }
 
 $coin_records
+
+Import-Module Microsoft.PowerShell.ConsoleGuiTools 
+$module = (Get-Module Microsoft.PowerShell.ConsoleGuiTools -List).ModuleBase
+Add-Type -Path (Join-path $module Terminal.Gui.dll)
+
+[Terminal.Gui.Application]::Init()
+
+$Window = [Terminal.Gui.Window]::new()
+$Window.Title = "Hello, World"
+[Terminal.Gui.Application]::Top.Add($Window)
+[Terminal.Gui.Application]::Run()
+[Terminal.Gui.Application]::Shutdown()
