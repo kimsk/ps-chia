@@ -391,14 +391,16 @@ function Get-Chia-Block-Height{
 }
 
 # https://docs.chia.net/full-node-rpc/#get_fee_estimate
-function Get-Fee-Estimate{
+function Get-Chia-Fee-Estimate{
     [CmdletBinding()]
     param (
-        [Parameter(Mandatory=$true)]
-        [ValidateSet("XCH", "CAT", "TAKE_OFFER", "CANCEL_OFFER", "NFT_SET_NFT_DID", "NFT_TRANSFER_NFT", "CREATE_NEW_POOL_WALLET", "PW_ABSORB_REWARDS", "CREATE_NEW_DID_WALLET")]
-        [string]$Type,
         [Parameter(Mandatory=$false)]
-        [int]$Time = 60 # target_times in seconds
+        [ValidateSet("XCH", "CAT", "TAKE_OFFER", "CANCEL_OFFER", "NFT_SET_NFT_DID", "NFT_TRANSFER_NFT", "CREATE_NEW_POOL_WALLET", "PW_ABSORB_REWARDS", "CREATE_NEW_DID_WALLET")]
+        [string]$Type = "XCH",
+        [Parameter(Mandatory=$false)]
+        [int]$Time = 60, # target_times in seconds,
+        [Parameter(Mandatory=$false)]
+        [switch]$Mojos = $false
     )
     # https://github.com/Chia-Network/chia-blockchain/blob/92499b64a26784081e76f2e1f00582033fe64da7/chia/rpc/full_node_rpc_api.py#L846
     $tx_cost_estimates = @{
@@ -413,5 +415,11 @@ function Get-Fee-Estimate{
             "create_new_did_wallet" = 57360396
         }
     $payload = @{cost = $tx_cost_estimates[$Type.ToLower()]; target_times = @($Time) } | ConvertTo-Json
-    return chia rpc full_node get_fee_estimate $payload | jq ".estimates.[0]"
+    $fee = chia rpc full_node get_fee_estimate $payload | jq ".estimates.[0]"
+    if ($Mojos) {
+        return $fee
+    } else {
+        # use .ToString("N12")) to format to 12 decimal places
+        return $fee / 1000000000000
+    }
 }
