@@ -145,7 +145,7 @@ function Get-DerivedPuzzleHashes {
     if ($AssetId) {
         $catPuzzleHashes =
             $puzzleHashes 
-            | ForEach-Object { cdv clsp cat_puzzle_hash -t $AssetId $_ }
+            | ForEach-Object { Write-Host "." -NoNewline; cdv clsp cat_puzzle_hash -t $AssetId $_ }
         $result = $catPuzzleHashes
     }
 
@@ -379,4 +379,39 @@ function Get-ObservedDerivedWalletPublicKey{
     $idx = $regex_matches.Matches[0].Groups['idx'].Value
     $address = $regex_matches.Matches[0].Groups['pk'].Value
     return [pscustomobject]@{ index = $idx; public_key = $address }
+}
+
+
+function Get-Chia-Mempool-Size{
+    return chia rpc full_node get_blockchain_state | jq ".blockchain_state.mempool_size"
+}
+
+function Get-Chia-Block-Height{
+    return chia rpc full_node get_blockchain_state | jq ".blockchain_state.peak.height"
+}
+
+# https://docs.chia.net/full-node-rpc/#get_fee_estimate
+function Get-Fee-Estimate{
+    [CmdletBinding()]
+    param (
+        [Parameter(Mandatory=$true)]
+        [ValidateSet("XCH", "CAT", "TAKE_OFFER", "CANCEL_OFFER", "NFT_SET_NFT_DID", "NFT_TRANSFER_NFT", "CREATE_NEW_POOL_WALLET", "PW_ABSORB_REWARDS", "CREATE_NEW_DID_WALLET")]
+        [string]$Type,
+        [Parameter(Mandatory=$false)]
+        [int]$Time = 60 # target_times in seconds
+    )
+    # https://github.com/Chia-Network/chia-blockchain/blob/92499b64a26784081e76f2e1f00582033fe64da7/chia/rpc/full_node_rpc_api.py#L846
+    $tx_cost_estimates = @{
+            "xch" = 9401710
+            "cat" = 36382111
+            "take_offer" = 721393265
+            "cancel_offer" = 212443993
+            "nft_set_nft_did" = 115540006
+            "nft_transfer_nft" = 74385541  # burn or transfer
+            "create_new_pool_wallet" = 18055407
+            "pw_absorb_rewards" = 82668466
+            "create_new_did_wallet" = 57360396
+        }
+    $payload = @{cost = $tx_cost_estimates[$Type.ToLower()]; target_times = @($Time) } | ConvertTo-Json
+    return chia rpc full_node get_fee_estimate $payload | jq ".estimates.[0]"
 }
