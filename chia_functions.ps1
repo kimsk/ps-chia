@@ -419,7 +419,40 @@ function Get-Chia-Fee-Estimate{
     if ($Mojos) {
         return $fee
     } else {
-        # use .ToString("N12")) to format to 12 decimal places
-        return $fee / 1000000000000
+        # use .ToString("N12") to format to 12 decimal places
+        return ($fee / 1000000000000).ToString("N12")
     }
+}
+
+function Get-Chia-Fee-Ranges{
+    $mempool_items = (chia rpc full_node get_all_mempool_items | ConvertFrom-Json).mempool_items
+    $fees = $mempool_items.psobject.properties | % { $_.Value.fee }
+    
+    $groups = @(
+        @{ ranges="0 mojo"; count = 0},
+        @{ ranges="1-1000"; count = 0},
+        @{ ranges="1,001-1,000,000"; count = 0},
+        @{ ranges="1,000,001-1,000,000,000"; count = 0},
+        @{ ranges="< 1 XCH"; count = 0},
+        @{ ranges=">= 1 XCH"; count = 0}
+    )
+
+    foreach ($fee in $fees) {
+        if ($fee -eq 0) {
+            $groups[0].count++
+        } elseif ($fee -le 1000) {
+            $groups[1].count++
+        } elseif ($fee -le 1000000) {
+            $groups[2].count++
+        } elseif ($fee -le 1000000000) {
+            $groups[3].count++
+        } elseif ($fee -lt 1000000000000) {
+            $groups[4].count++
+        } else {
+            $groups[5].count++
+        }
+    }
+    $ranges = $groups | % { [pscustomobject]$_ }
+    $total = $ranges | Measure-Object -Property count -Sum
+    return @($total, $ranges)
 }

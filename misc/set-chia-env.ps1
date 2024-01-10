@@ -23,8 +23,8 @@ if($mainnet) {
     chia configure -t false
 } 
 elseif($testnet) {
-    $env:CHIA_ROOT = "~/.chia/testnet10"
-    $env:CHIA_KEYS_ROOT = "~/.chia_keys_testnet10"
+    $env:CHIA_ROOT = "~/.chia/testnet11"
+    $env:CHIA_KEYS_ROOT = "~/.chia_keys_testnet11"
     chia configure -t true
 } 
 elseif($sim) {
