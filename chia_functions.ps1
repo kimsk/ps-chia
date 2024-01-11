@@ -430,9 +430,10 @@ function Get-Chia-Fee-Ranges{
     
     $groups = @(
         @{ name="0 mojo"; count = 0},
-        @{ name="1-1000"; count = 0},
-        @{ name="1,001-1,000,000"; count = 0},
-        @{ name="1,000,001-1,000,000,000"; count = 0},
+        @{ name="1-1,000,000 (0.000001)"; count = 0},
+        @{ name="1,000,001-5,000,000 (0.000005)"; count = 0},
+        @{ name="5,000,001-50,000,000 (0.00005)"; count = 0},
+        @{ name="50,000,001-500,000,000 (0.0005)"; count = 0},
         @{ name="< 1 XCH"; count = 0},
         @{ name=">= 1 XCH"; count = 0},
         @{ name="Total"; count = 0}
@@ -441,18 +442,20 @@ function Get-Chia-Fee-Ranges{
     foreach ($fee in $fees) {
         if ($fee -eq 0) {
             $groups[0].count++
-        } elseif ($fee -le 1000) {
+        } elseif ($fee -le 1*1e6) {
             $groups[1].count++
-        } elseif ($fee -le 1000000) {
+        } elseif ($fee -le 5*1e6) {
             $groups[2].count++
-        } elseif ($fee -le 1000000000) {
+        } elseif ($fee -le 5*1e7) {
             $groups[3].count++
-        } elseif ($fee -lt 1000000000000) {
+        } elseif ($fee -le 5*1e8) {
             $groups[4].count++
-        } else {
+        } elseif ($fee -lt 1e12) {
             $groups[5].count++
+        } else {
+            $groups[6].count++
         }
-        $groups[6].count++
+        $groups[7].count++
     }
     return $groups | % { [pscustomobject]$_ }
 }
