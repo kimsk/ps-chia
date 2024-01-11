@@ -429,12 +429,13 @@ function Get-Chia-Fee-Ranges{
     $fees = $mempool_items.psobject.properties | % { $_.Value.fee }
     
     $groups = @(
-        @{ ranges="0 mojo"; count = 0},
-        @{ ranges="1-1000"; count = 0},
-        @{ ranges="1,001-1,000,000"; count = 0},
-        @{ ranges="1,000,001-1,000,000,000"; count = 0},
-        @{ ranges="< 1 XCH"; count = 0},
-        @{ ranges=">= 1 XCH"; count = 0}
+        @{ name="0 mojo"; count = 0},
+        @{ name="1-1000"; count = 0},
+        @{ name="1,001-1,000,000"; count = 0},
+        @{ name="1,000,001-1,000,000,000"; count = 0},
+        @{ name="< 1 XCH"; count = 0},
+        @{ name=">= 1 XCH"; count = 0},
+        @{ name="Total"; count = 0}
     )
 
     foreach ($fee in $fees) {
@@ -451,8 +452,7 @@ function Get-Chia-Fee-Ranges{
         } else {
             $groups[5].count++
         }
+        $groups[6].count++
     }
-    $ranges = $groups | % { [pscustomobject]$_ }
-    $total = $ranges | Measure-Object -Property count -Sum
-    return @($total, $ranges)
+    return $groups | % { [pscustomobject]$_ }
 }
