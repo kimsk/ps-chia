@@ -459,3 +459,22 @@ function Get-Chia-Fee-Ranges{
     }
     return $groups | % { [pscustomobject]$_ }
 }
+
+function Get-Chia-Mempool-Info-By-Coin{
+    [CmdletBinding()]
+    param(
+        [Parameter(Mandatory=$true, ValueFromPipeline)]
+        [string]$Name
+    )
+    $payload = @{coin_name = $Name} | ConvertTo-Json
+    $mempool_items = (chia rpc full_node get_mempool_items_by_coin_name $payload | ConvertFrom-Json).mempool_items
+    $mempool_info = $mempool_items | % { [PSCustomObject]@{
+        name = $_.spend_bundle_name
+        fee = $_.fee
+        cost = $_.cost
+        fee_per_cost = $_.fee / $_.cost
+        additions = $_.additions.Length
+        removals = $_.removals.Length
+    }}
+    return $mempool_info
+}
