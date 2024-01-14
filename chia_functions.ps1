@@ -400,7 +400,9 @@ function Get-Chia-Fee-Estimate{
         [Parameter(Mandatory=$false)]
         [int]$Time = 60, # target_times in seconds,
         [Parameter(Mandatory=$false)]
-        [switch]$Mojos = $false
+        [Int]$NumberOfCoins = 1,
+        [Parameter(Mandatory=$false)]
+        [switch]$Mojos = $false # e.g., true, 50000000 vs false 0.00005 
     )
     # https://github.com/Chia-Network/chia-blockchain/blob/92499b64a26784081e76f2e1f00582033fe64da7/chia/rpc/full_node_rpc_api.py#L846
     $tx_cost_estimates = @{
@@ -414,7 +416,7 @@ function Get-Chia-Fee-Estimate{
             "pw_absorb_rewards" = 82668466
             "create_new_did_wallet" = 57360396
         }
-    $payload = @{cost = $tx_cost_estimates[$Type.ToLower()]; target_times = @($Time) } | ConvertTo-Json
+    $payload = @{cost = [Int64]($tx_cost_estimates[$Type.ToLower()] * $NumberOfCoins); target_times = @($Time) } | ConvertTo-Json
     $fee = chia rpc full_node get_fee_estimate $payload | jq ".estimates.[0]"
     if ($Mojos) {
         return $fee
