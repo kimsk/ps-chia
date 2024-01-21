@@ -490,14 +490,20 @@ function Remove-Chia-Expired-Offers{
     Write-Host "Current Time: $current_time"
 
     $all_offers = chia rpc wallet get_all_offers | ConvertFrom-Json | % { $_.trade_records }
-    $expired_offers = $all_offers | ? { $_.valid_times.max_height -lt $current_block_height -or $_.valid_times.max_time -lt $current_time }
+
+    $expired_offers = $all_offers | 
+        ? { ($_.valid_times.max_height -and ($_.valid_times.max_height -lt $current_block_height)) -or ($_.valid_times.max_time -and ($_.valid_times.max_time -lt $current_time)) }
     Write-Host "All offers: $($all_offers.Length)"
     Write-Host "Expired offers: $($expired_offers.Length)"
 
     foreach ($offer in $expired_offers) {
         $payload = @{trade_id = $offer.trade_id; secure=$False} | ConvertTo-Json
-        $result = chia rpc wallet cancel_offer $payload
-        Write-Host $result
-    }
+        $result = chia rpc wallet cancel_offer $payload | ConvertFrom-Json
+        if ($result.success) {
+            Write-Host "Cancelled offer: $($offer.trade_id)"
+        } else {
+            Write-Host "Failed to cancel offer: $($offer.trade_id)"
+        }
+     }
 }
 
