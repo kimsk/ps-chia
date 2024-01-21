@@ -480,3 +480,24 @@ function Get-Chia-Mempool-Info-By-Coin{
     }}
     return $mempool_info
 }
+
+function Remove-Chia-Expired-Offers{
+    $logged_in_fingerprint = chia rpc wallet get_logged_in_fingerprint | jq ".fingerprint"
+    Write-Host "Logged in fingerprint: $logged_in_fingerprint"
+    $current_time = [int](Get-Date -UFormat %s -Millisecond 0)
+    $current_block_height = Get-Chia-Block-Height
+    Write-Host "Current Block Height: $current_block_height"
+    Write-Host "Current Time: $current_time"
+
+    $all_offers = chia rpc wallet get_all_offers | ConvertFrom-Json | % { $_.trade_records }
+    $expired_offers = $all_offers | ? { $_.valid_times.max_height -lt $current_block_height -or $_.valid_times.max_time -lt $current_time }
+    Write-Host "All offers: $($all_offers.Length)"
+    Write-Host "Expired offers: $($expired_offers.Length)"
+
+    foreach ($offer in $expired_offers) {
+        $payload = @{trade_id = $offer.trade_id; secure=$False} | ConvertTo-Json
+        $result = chia rpc wallet cancel_offer $payload
+        Write-Host $result
+    }
+}
+
