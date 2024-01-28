@@ -481,6 +481,19 @@ function Get-Chia-Mempool-Info-By-Coin{
     return $mempool_info
 }
 
+# Get-Chia-Mempool-Info-By-Coin -Name "0xf5832bcf72821404b1c708a2db2c509e3d83b37545a74fb81502171ca637f307" | 
+# % { $_.name } | 
+# Get-Chia-Mempool-SpendBudle-By-Id
+function Get-Chia-Mempool-SpendBudle-By-Id{
+    [CmdletBinding()]
+    param(
+        [Parameter(Mandatory=$true, ValueFromPipeline)]
+        [string]$Id
+    )
+    $payload = @{tx_id = $Id} | ConvertTo-Json
+    return chia rpc full_node get_mempool_item_by_tx_id $payload | jq ".mempool_item.spend_bundle"
+}
+
 function Remove-Chia-Expired-Offers{
     $logged_in_fingerprint = chia rpc wallet get_logged_in_fingerprint | jq ".fingerprint"
     Write-Host "Logged in fingerprint: $logged_in_fingerprint"
